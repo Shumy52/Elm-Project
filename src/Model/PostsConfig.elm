@@ -43,9 +43,22 @@ sortToString sort =
 
 -}
 sortFromString : String -> Maybe SortBy
-sortFromString _ =
-    -- Nothing
-    Debug.todo "sortFromString"
+sortFromString str =
+    case str of
+        "Score" ->
+            Just Score
+
+        "Title" ->
+            Just Title
+
+        "Posted" ->
+            Just Posted
+
+        "None" ->
+            Just None
+
+        _ ->
+            Nothing
 
 
 sortToCompareFn : SortBy -> (Post -> Post -> Order)
@@ -81,14 +94,28 @@ defaultConfig =
 {-| A type that describes what option changed and how
 -}
 type Change
-    = ChangeTODO
+    = SetPostsPerPage Int
+    | SetSortBy SortBy
+    | ToggleShowJobs Bool
+    | ToggleShowTextOnly Bool
 
 
 {-| Given a change and the current configuration, return a new configuration with the changes applied
 -}
 applyChanges : Change -> PostsConfig -> PostsConfig
-applyChanges _ _ =
-    Debug.todo "applyChanges"
+applyChanges change config =
+    case change of
+        SetPostsPerPage n ->
+            { config | postsToShow = n }
+
+        SetSortBy field ->
+            { config | sortBy = field }
+
+        ToggleShowJobs showJobs ->
+            { config | showJobs = showJobs }
+
+        ToggleShowTextOnly showTextOnly ->
+            { config | showTextOnly = showTextOnly }
 
 
 {-| Given the configuration and a list of posts, return the relevant subset of posts according to the configuration
@@ -103,6 +130,9 @@ Relevant library functions:
 
 -}
 filterPosts : PostsConfig -> List Post -> List Post
-filterPosts _ _ =
-    -- []
-    Debug.todo "filterPosts"
+filterPosts config posts =
+    posts
+        |> List.filter (\post -> if config.showTextOnly then post.url == Nothing else True)
+        |> List.filter (\post -> if config.showJobs then True else post.type_ /= "job")
+        |> List.sortWith (sortToCompareFn config.sortBy)
+        |> List.take config.postsToShow

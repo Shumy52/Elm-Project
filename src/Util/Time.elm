@@ -139,9 +139,32 @@ durationBetween (Time.millisToPosix 1000) (Time.millisToPosix 1000) --> Nothing
 
 -}
 durationBetween : Time.Posix -> Time.Posix -> Maybe Duration
-durationBetween _ _ =
-    -- Nothing
-    Debug.todo "durationBetween"
+durationBetween t1 t2 =
+    if Time.posixToMillis t1 >= Time.posixToMillis t2 then
+        Nothing
+    else
+        let
+            diffMillis =
+                Time.posixToMillis t2 - Time.posixToMillis t1
+
+            seconds =
+                diffMillis // 1000
+
+            minutes =
+                seconds // 60
+
+            hours =
+                minutes // 60
+
+            days =
+                hours // 24
+        in
+        Just
+            { seconds = modBy 60 seconds
+            , minutes = modBy 60 minutes
+            , hours = modBy 24 hours
+            , days = days
+            }
 
 
 {-| Format a `Duration` as a human readable string
@@ -164,6 +187,44 @@ durationBetween _ _ =
 
 -}
 formatDuration : Duration -> String
-formatDuration _ =
-    -- ""
-    Debug.todo "formatDuration"
+formatDuration duration =
+    let
+        formatPart value singular plural =
+            if value == 1 then
+                "1 " ++ singular
+            else if value > 1 then
+                String.fromInt value ++ " " ++ plural
+            else
+                ""
+        
+        parts =
+            [ formatPart duration.days "day" "days"
+            , formatPart duration.hours "hour" "hours"
+            , formatPart duration.minutes "minute" "minutes"
+            , formatPart duration.seconds "second" "seconds"
+            ]
+            |> List.filter (\part -> part /= "") -- HELP
+    in
+    case parts of
+        [] ->
+            "just now"
+
+        _ ->
+            String.join " " parts ++ " ago"
+            
+
+formatSubmissionTime : Time.Zone -> Time.Posix -> Time.Posix -> String
+formatSubmissionTime tz submissionTime currentTime =
+    let
+        absoluteDate =
+            formatTime tz submissionTime
+
+        duration =
+            durationBetween submissionTime currentTime
+    in
+    case duration of
+        Nothing ->
+            absoluteDate
+
+        Just d ->
+            absoluteDate ++ " (" ++ formatDuration d ++ ")"

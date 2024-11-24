@@ -59,9 +59,12 @@ If the `Cursor` is focused on the last element, it returns `Nothing`
 
 -}
 advance : PostIds -> Maybe ( Int, PostIds )
-advance _ =
-    -- Nothing
-    Debug.todo "advance"
+advance (PostIds ids) =
+    case Cursor.forward ids of 
+        Just newCursor ->
+            Just (Cursor.current newCursor, PostIds newCursor)
+        Nothing ->
+            Nothing
 
 
 {-| Returns the first post id
@@ -91,7 +94,16 @@ If the list is empty, the function returns `Nothing`.
     De.decodeString decode "[]" --> Ok (Nothing)
 
 -}
+-- TO REVIEW
 decode : De.Decoder (Maybe PostIds)
 decode =
-    -- De.fail "TODO"
-    Debug.todo "PostIds.decode"
+    De.list De.int
+        |> De.andThen
+            (\ids ->
+                case fromList ids of
+                    Just postIds ->
+                        De.succeed (Just postIds)
+
+                    Nothing ->
+                        De.succeed Nothing
+            )

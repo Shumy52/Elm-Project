@@ -29,10 +29,6 @@ Relevant library functions:
 -}
 
 
-
-
-
-
 postTable : PostsConfig -> Time.Posix -> List Post -> Html Msg
 postTable _ _ posts =
     Html.table []
@@ -53,8 +49,8 @@ postRow post =
     Html.tr []
         [ Html.td [ Html.Attributes.class "post-score" ] [ text (String.fromInt post.score) ]
         , Html.td [ Html.Attributes.class "post-title" ] [ text post.title ]
-        , Html.td [ Html.Attributes.class "post-type" ] [ text post.type_ ]
-        , Html.td [ Html.Attributes.class "post-time" ] [ text (Util.Time.formatTime Time.utc post.time) ]
+        , Html.td [ Html.Attributes.class "post-type" ] [ text post.type_ ]-- That weird thing... Is 24.11.2024 as a time posix. Because fuck elm
+        , Html.td [ Html.Attributes.class "post-time" ] [ text (Util.Time.formatSubmissionTime Time.utc (Time.millisToPosix 1698777600000) post.time) ]
         , Html.td [ Html.Attributes.class "post-url" ]
             [ maybeLink post.url ]
         ]
@@ -101,6 +97,7 @@ postsConfigView _ =
                   , option [ Html.Attributes.value "25" ] [ text "25" ]
                   , option [ Html.Attributes.value "50" ] [ text "50" ]
                   ]
+                  
               ]
           -- Sort By Select
         , div []
